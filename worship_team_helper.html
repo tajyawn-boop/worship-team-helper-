@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>찬양팀 연습 도우미</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Song+Myung&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0ece4;
+    --bg-warm: #e7e0d2;
+    --card: #fbf9f4;
+    --ink: #2a2722;
+    --ink-soft: #6d6557;
+    --ink-faint: #9a9081;
+    --line: #d6cdba;
+    --plum: #6d4d6e;
+    --plum-deep: #523a54;
+    --amber: #c98a3c;
+    --amber-deep: #a26d2a;
+    --teal: #3f7d7a;
+    --rose: #b05a5a;
+    --shadow: rgba(50, 40, 24, 0.14);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Gowun Dodum', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 50% 30% at 12% 0%, rgba(109,77,110,0.10), transparent),
+      radial-gradient(ellipse 40% 30% at 90% 8%, rgba(201,138,60,0.10), transparent);
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 18px 90px; position: relative; z-index: 1; }
+
+  /* 헤더 */
+  header { text-align: center; padding: 44px 14px 24px; }
+  .eyebrow {
+    font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.3em;
+    font-size: 1rem; color: var(--amber-deep); margin-bottom: 6px;
+  }
+  h1 {
+    font-family: 'Song Myung', serif; font-size: 2.7rem; letter-spacing: 0.01em;
+  }
+  .tagline { color: var(--ink-soft); font-size: 0.98rem; margin-top: 6px; }
+
+  /* 탭 */
+  .tabs {
+    display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+    margin: 22px 0 26px;
+  }
+  .tab {
+    font-family: 'Gowun Dodum', sans-serif; font-size: 0.96rem;
+    padding: 9px 18px; border: 1.5px solid var(--line); border-radius: 22px;
+    background: var(--card); color: var(--ink-soft); cursor: pointer;
+    transition: all 0.16s;
+  }
+  .tab:hover { border-color: var(--plum); color: var(--ink); }
+  .tab.active {
+    background: var(--plum); color: #fff; border-color: var(--plum);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade 0.35s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .note {
+    background: var(--bg-warm); border-radius: 10px; padding: 11px 16px;
+    font-size: 0.88rem; color: var(--ink-soft); margin-bottom: 20px;
+  }
+  .note b { color: var(--amber-deep); }
+
+  /* 버튼 */
+  .btn {
+    font-family: 'Gowun Dodum', sans-serif; font-size: 0.92rem;
+    padding: 9px 16px; border: 1.5px solid var(--ink); border-radius: 9px;
+    background: var(--card); color: var(--ink); cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px var(--shadow); }
+  .btn:active { transform: translateY(0); }
+  .btn.plum { background: var(--plum); color: #fff; border-color: var(--plum); }
+  .btn.amber { background: var(--amber); color: #fff; border-color: var(--amber); }
+  .btn.sm { font-size: 0.8rem; padding: 6px 11px; }
+  .btn.ghost { background: transparent; }
+  .btn.danger { border-color: var(--rose); color: var(--rose); background: transparent; }
+
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; align-items: center; }
+  .toolbar .spacer { flex: 1; }
+
+  /* ===== 곡 라이브러리 ===== */
+  .song-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 14px;
+  }
+  .song-card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 15px 16px;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .song-card:hover { transform: translateY(-3px); border-color: var(--plum); }
+  .song-card h3 { font-family: 'Song Myung', serif; font-size: 1.16rem; }
+  .song-card .sc-artist { font-size: 0.83rem; color: var(--ink-soft); margin-bottom: 9px; }
+  .song-card .sc-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .pill {
+    font-size: 0.76rem; padding: 2px 10px; border-radius: 10px;
+    background: var(--bg-warm); color: var(--ink-soft);
+  }
+  .pill.key { background: #e6dced; color: var(--plum-deep); font-weight: 600; }
+  .pill.bpm { background: #e8ddcb; color: var(--amber-deep); }
+  .sc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sc-link {
+    font-size: 0.8rem; text-decoration: none; padding: 5px 10px;
+    border-radius: 8px; border: 1.5px solid var(--line); color: var(--ink-soft);
+    transition: all 0.15s;
+  }
+  .sc-link:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* ===== 세트리스트 ===== */
+  .set-head {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 16px; margin-bottom: 16px;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+  }
+  .fld { display: flex; flex-direction: column; gap: 3px; }
+  .fld label { font-size: 0.78rem; color: var(--ink-soft); }
+  .fld input, .fld select, .fld textarea {
+    font-family: 'Gowun Dodum', sans-serif; font-size: 0.94rem;
+    border: 1.5px solid var(--line); border-radius: 8px;
+    padding: 7px 10px; background: var(--bg); color: var(--ink);
+  }
+  .fld input:focus, .fld select:focus, .fld textarea:focus {
+    outline: none; border-color: var(--plum);
+  }
+  .fld.grow { flex: 1; min-width: 140px; }
+  .fld.grow input { width: 100%; }
+
+  .setlist-rows { margin-bottom: 12px; }
+  .set-row {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 11px; padding: 13px 14px; margin-bottom: 9px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .set-row .order {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem;
+    color: var(--amber); width: 30px; text-align: center; flex-shrink: 0;
+  }
+  .set-row .sr-body { flex: 1; min-width: 0; }
+  .set-row .sr-title { font-weight: 600; font-size: 1.02rem; }
+  .set-row .sr-sub { font-size: 0.8rem; color: var(--ink-soft); }
+  .set-row .sr-note {
+    font-size: 0.82rem; color: var(--plum); font-style: italic; margin-top: 2px;
+  }
+  .set-row .sr-move { display: flex; flex-direction: column; gap: 2px; }
+  .set-row .sr-move button {
+    width: 28px; height: 20px; border: none; border-radius: 5px;
+    background: var(--bg-warm); cursor: pointer; font-size: 0.7rem;
+    transition: background 0.14s;
+  }
+  .set-row .sr-move button:hover { background: var(--plum); color: #fff; }
+
+  .add-to-set {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end;
+    background: var(--bg-warm); border-radius: 10px; padding: 13px; margin-bottom: 14px;
+  }
+
+  /* ===== 파트 체크 ===== */
+  .part-board {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .part-col {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 15px;
+  }
+  .part-col h3 {
+    font-family: 'Song Myung', serif; font-size: 1.1rem; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .part-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+  .part-progress { font-size: 0.8rem; color: var(--ink-soft); margin-bottom: 10px; }
+  .check-item {
+    display: flex; align-items: center; gap: 9px; padding: 7px 0;
+    border-top: 1px dashed var(--line); font-size: 0.92rem;
+  }
+  .check-item:first-of-type { border-top: none; }
+  .check-box {
+    width: 21px; height: 21px; border: 2px solid var(--line);
+    border-radius: 6px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; transition: all 0.14s;
+  }
+  .check-box.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .check-label { flex: 1; }
+  .check-item.done .check-label { color: var(--ink-faint); text-decoration: line-through; }
+
+  /* ===== 연습 일정 ===== */
+  .sched-list { display: flex; flex-direction: column; gap: 10px; }
+  .sched-card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .sched-card.past { opacity: 0.6; }
+  .sched-date {
+    text-align: center; flex-shrink: 0; width: 62px;
+    border-right: 2px solid var(--line); padding-right: 12px;
+  }
+  .sched-date .sd-day {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.9rem;
+    color: var(--plum); line-height: 1;
+  }
+  .sched-date .sd-mon { font-size: 0.74rem; color: var(--ink-soft); }
+  .sched-body { flex: 1; }
+  .sched-body .sb-title { font-weight: 600; }
+  .sched-body .sb-meta { font-size: 0.82rem; color: var(--ink-soft); }
+
+  .empty {
+    text-align: center; padding: 50px 20px; color: var(--ink-faint);
+  }
+  .empty .big { font-size: 2.2rem; margin-bottom: 6px; }
+
+  /* 모달 */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(30,24,16,0.55);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 18px;
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 16px; padding: 22px;
+    max-width: 440px; width: 100%; max-height: 88vh; overflow-y: auto;
+  }
+  .modal h3 { font-family: 'Song Myung', serif; font-size: 1.3rem; margin-bottom: 14px; }
+  .modal .fld { margin-bottom: 12px; }
+  .modal .fld label { margin-bottom: 3px; }
+  .modal .fld input, .modal .fld select, .modal .fld textarea { width: 100%; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+
+  /* 토스트 */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(90px);
+    background: var(--plum); color: #fff; font-size: 0.94rem;
+    padding: 11px 24px; border-radius: 22px; z-index: 200;
+    transition: transform 0.32s cubic-bezier(0.2,0,0.2,1);
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  footer {
+    text-align: center; margin-top: 40px; padding-top: 20px;
+    border-top: 1px solid var(--line); color: var(--ink-faint);
+    font-size: 0.84rem;
+  }
+  @media (max-width: 600px) {
+    h1 { font-size: 2.1rem; }
+    .song-grid, .part-board { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">WORSHIP TEAM</div>
+    <h1>찬양팀 연습 도우미</h1>
+    <p class="tagline">곡을 모으고, 콘티를 짜고, 준비를 점검하고, 연습을 계획해요</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="library">곡 라이브러리</button>
+    <button class="tab" data-panel="setlist">세트리스트 콘티</button>
+    <button class="tab" data-panel="parts">파트 준비 체크</button>
+    <button class="tab" data-panel="schedule">연습 일정</button>
+  </div>
+
+  <!-- ===== 곡 라이브러리 ===== -->
+  <div class="panel active" id="panel-library">
+    <div class="note">
+      팀이 아는 곡을 모아두는 곳이에요. 곡마다 <b>키·BPM·악보·음원 링크</b>를 저장하면,
+      콘티를 짤 때 여기서 바로 골라 쓸 수 있어요.
+    </div>
+    <div class="toolbar">
+      <button class="btn plum" onclick="openSongModal()">+ 곡 추가</button>
+      <div class="spacer"></div>
+      <input class="fld" style="padding:7px 12px;border:1.5px solid var(--line);border-radius:8px;"
+        type="text" id="lib-search" placeholder="곡 검색...">
+    </div>
+    <div class="song-grid" id="song-grid"></div>
+  </div>
+
+  <!-- ===== 세트리스트 콘티 ===== -->
+  <div class="panel" id="panel-setlist">
+    <div class="note">
+      예배별로 곡 순서를 짜고, 곡 사이 <b>전환 멘트</b>와 인도 노트를 적어요.
+      완성된 콘티는 <b>내보내기</b>로 팀에 공유하세요.
+    </div>
+    <div class="set-head">
+      <div class="fld grow">
+        <label>콘티 제목</label>
+        <input type="text" id="set-title" placeholder="예: 8월 셋째 주 주일 예배">
+      </div>
+      <div class="fld">
+        <label>날짜</label>
+        <input type="text" id="set-date" placeholder="2026.8.16">
+      </div>
+      <div class="fld">
+        <label>인도자</label>
+        <input type="text" id="set-leader" placeholder="이름">
+      </div>
+    </div>
+
+    <div class="add-to-set">
+      <div class="fld grow">
+        <label>라이브러리에서 곡 선택</label>
+        <select id="set-song-pick"><option value="">— 곡 선택 —</option></select>
+      </div>
+      <div class="fld">
+        <label>이 콘티에서의 키</label>
+        <input type="text" id="set-song-key" placeholder="자동" style="width:80px;">
+      </div>
+      <button class="btn amber" onclick="addSongToSet()">+ 추가</button>
+    </div>
+
+    <div class="setlist-rows" id="setlist-rows"></div>
+
+    <div class="toolbar">
+      <button class="btn plum" onclick="exportConti()">콘티 내보내기 (공유용)</button>
+      <button class="btn ghost" onclick="window.print()">인쇄</button>
+      <div class="spacer"></div>
+      <button class="btn danger sm" onclick="clearSet()">콘티 비우기</button>
+    </div>
+  </div>
+
+  <!-- ===== 파트 준비 체크 ===== -->
+  <div class="panel" id="panel-parts">
+    <div class="note">
+      보컬·건반·드럼·베이스 등 <b>파트별 준비 상태</b>를 점검해요.
+      현재 콘티의 곡들이 각 파트에 자동으로 들어옵니다.
+    </div>
+    <div id="part-board-wrap"></div>
+  </div>
+
+  <!-- ===== 연습 일정 ===== -->
+  <div class="panel" id="panel-schedule">
+    <div class="note">
+      연습 날짜와 장소, 그날 다룰 곡을 적어두세요. 지난 일정은 흐리게 표시돼요.
+    </div>
+    <div class="toolbar">
+      <button class="btn plum" onclick="openSchedModal()">+ 연습 일정 추가</button>
+    </div>
+    <div class="sched-list" id="sched-list"></div>
+  </div>
+
+  <footer>찬양팀 연습 도우미 — 청소년부 사역 도구</footer>
+</div>
+
+<!-- 곡 추가 모달 -->
+<div class="modal-bg" id="song-modal">
+  <div class="modal">
+    <h3 id="song-modal-title">곡 추가</h3>
+    <div class="fld">
+      <label>곡 제목 *</label>
+      <input type="text" id="m-song-title" placeholder="예: 주 은혜임을">
+    </div>
+    <div class="fld">
+      <label>가수 / 팀</label>
+      <input type="text" id="m-song-artist" placeholder="예: 마커스워십">
+    </div>
+    <div style="display:flex; gap:10px;">
+      <div class="fld" style="flex:1;">
+        <label>키 (Key)</label>
+        <input type="text" id="m-song-key" placeholder="예: G">
+      </div>
+      <div class="fld" style="flex:1;">
+        <label>BPM</label>
+        <input type="text" id="m-song-bpm" placeholder="예: 72">
+      </div>
+    </div>
+    <div class="fld">
+      <label>분위기</label>
+      <select id="m-song-mood">
+        <option value="여는 찬양">여는 찬양 (밝고 경쾌)</option>
+        <option value="경배">경배 (잔잔하고 깊은)</option>
+        <option value="결단">결단 (헌신·응답)</option>
+        <option value="송영">송영 (마무리)</option>
+      </select>
+    </div>
+    <div class="fld">
+      <label>악보 링크</label>
+      <input type="text" id="m-song-sheet" placeholder="https:// (선택)">
+    </div>
+    <div class="fld">
+      <label>음원 / 영상 링크</label>
+      <input type="text" id="m-song-audio" placeholder="https:// (선택)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeSongModal()">취소</button>
+      <button class="btn plum" onclick="saveSong()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 연습 일정 모달 -->
+<div class="modal-bg" id="sched-modal">
+  <div class="modal">
+    <h3>연습 일정 추가</h3>
+    <div class="fld">
+      <label>날짜 *</label>
+      <input type="date" id="m-sched-date">
+    </div>
+    <div class="fld">
+      <label>시간</label>
+      <input type="text" id="m-sched-time" placeholder="예: 오후 2시">
+    </div>
+    <div class="fld">
+      <label>장소</label>
+      <input type="text" id="m-sched-place" placeholder="예: 본당 / 소예배실">
+    </div>
+    <div class="fld">
+      <label>다룰 곡 / 메모</label>
+      <textarea id="m-sched-memo" rows="3" placeholder="예: 주일 콘티 4곡 맞춰보기, 신곡 연습"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeSchedModal()">취소</button>
+      <button class="btn plum" onclick="saveSched()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// 데이터
+// ============================================
+const STORE = 'worship_team_helper';
+const PARTS = [
+  { id: 'vocal', name: '보컬 · 싱어', color: '#6d4d6e' },
+  { id: 'key', name: '건반', color: '#c98a3c' },
+  { id: 'guitar', name: '기타', color: '#3f7d7a' },
+  { id: 'bass', name: '베이스', color: '#5a6b80' },
+  { id: 'drum', name: '드럼', color: '#b05a5a' }
+];
+
+const DEFAULT_DATA = {
+  songs: [
+    { id: 'd1', title: '주 은혜임을', artist: '마커스워십', key: 'A', bpm: '68', mood: '경배', sheet: '', audio: '' },
+    { id: 'd2', title: '주님께 가오니', artist: '아이자야6티', key: 'D', bpm: '72', mood: '경배', sheet: '', audio: '' },
+    { id: 'd3', title: '왕이신 나의 하나님', artist: '마커스워십', key: 'G', bpm: '128', mood: '여는 찬양', sheet: '', audio: '' },
+    { id: 'd4', title: '내 영혼이 주를 찬양', artist: '어노인팅', key: 'C', bpm: '76', mood: '결단', sheet: '', audio: '' }
+  ],
+  setMeta: { title: '', date: '', leader: '' },
+  setlist: [],   // {sid, key, note}
+  partChecks: {}, // { 'sid_partId': true }
+  schedules: []  // {id, date, time, place, memo}
+};
+
+let data = load();
+function load() {
+  try {
+    const v = JSON.parse(localStorage.getItem(STORE));
+    if (v && v.songs) return v;
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify(data)); } catch (e) {}
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function uid(p) { return p + Date.now() + Math.floor(Math.random() * 999); }
+
+// ============================================
+// 탭
+// ============================================
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+    if (tab.dataset.panel === 'parts') renderParts();
+    if (tab.dataset.panel === 'setlist') refreshSongPicker();
+  });
+});
+
+// ============================================
+// 곡 라이브러리
+// ============================================
+let editingSongId = null;
+
+function openSongModal(songId) {
+  editingSongId = songId || null;
+  const s = songId ? data.songs.find(x => x.id === songId) : null;
+  document.getElementById('song-modal-title').textContent = s ? '곡 수정' : '곡 추가';
+  document.getElementById('m-song-title').value = s ? s.title : '';
+  document.getElementById('m-song-artist').value = s ? s.artist : '';
+  document.getElementById('m-song-key').value = s ? s.key : '';
+  document.getElementById('m-song-bpm').value = s ? s.bpm : '';
+  document.getElementById('m-song-mood').value = s ? s.mood : '여는 찬양';
+  document.getElementById('m-song-sheet').value = s ? s.sheet : '';
+  document.getElementById('m-song-audio').value = s ? s.audio : '';
+  document.getElementById('song-modal').classList.add('show');
+}
+function closeSongModal() {
+  document.getElementById('song-modal').classList.remove('show');
+  editingSongId = null;
+}
+function saveSong() {
+  const title = document.getElementById('m-song-title').value.trim();
+  if (!title) { toast('곡 제목을 입력해주세요'); return; }
+  const obj = {
+    title,
+    artist: document.getElementById('m-song-artist').value.trim(),
+    key: document.getElementById('m-song-key').value.trim(),
+    bpm: document.getElementById('m-song-bpm').value.trim(),
+    mood: document.getElementById('m-song-mood').value,
+    sheet: document.getElementById('m-song-sheet').value.trim(),
+    audio: document.getElementById('m-song-audio').value.trim()
+  };
+  if (editingSongId) {
+    const s = data.songs.find(x => x.id === editingSongId);
+    Object.assign(s, obj);
+    toast('곡을 수정했어요');
+  } else {
+    obj.id = uid('s');
+    data.songs.push(obj);
+    toast('곡을 추가했어요');
+  }
+  save();
+  closeSongModal();
+  renderLibrary();
+  refreshSongPicker();
+}
+function deleteSong(songId) {
+  if (!confirm('이 곡을 라이브러리에서 삭제할까요?')) return;
+  data.songs = data.songs.filter(s => s.id !== songId);
+  data.setlist = data.setlist.filter(r => r.sid !== songId);
+  save();
+  renderLibrary();
+  refreshSongPicker();
+  renderSetlist();
+  toast('곡을 삭제했어요');
+}
+
+function renderLibrary() {
+  const grid = document.getElementById('song-grid');
+  const q = document.getElementById('lib-search').value.trim().toLowerCase();
+  let list = data.songs;
+  if (q) list = list.filter(s =>
+    s.title.toLowerCase().includes(q) || (s.artist || '').toLowerCase().includes(q));
+  if (list.length === 0) {
+    grid.innerHTML = '<div class="empty"><div class="big">♪</div>' +
+      (q ? '검색 결과가 없어요.' : '아직 곡이 없어요. <br>+ 곡 추가로 시작해보세요!') + '</div>';
+    return;
+  }
+  grid.innerHTML = list.map(s => `
+    <div class="song-card">
+      <h3>${esc(s.title)}</h3>
+      <div class="sc-artist">${esc(s.artist) || '—'}</div>
+      <div class="sc-meta">
+        ${s.key ? `<span class="pill key">Key ${esc(s.key)}</span>` : ''}
+        ${s.bpm ? `<span class="pill bpm">${esc(s.bpm)} BPM</span>` : ''}
+        <span class="pill">${esc(s.mood)}</span>
+      </div>
+      <div class="sc-actions">
+        ${s.sheet ? `<a class="sc-link" href="${esc(s.sheet)}" target="_blank" rel="noopener">악보</a>` : ''}
+        ${s.audio ? `<a class="sc-link" href="${esc(s.audio)}" target="_blank" rel="noopener">음원</a>` : ''}
+        <a class="sc-link" href="javascript:void(0)" onclick="openSongModal('${s.id}')">수정</a>
+        <a class="sc-link" href="javascript:void(0)" onclick="deleteSong('${s.id}')">삭제</a>
+      </div>
+    </div>`).join('');
+}
+document.getElementById('lib-search').addEventListener('input', renderLibrary);
+
+// ============================================
+// 세트리스트 콘티
+// ============================================
+function refreshSongPicker() {
+  const sel = document.getElementById('set-song-pick');
+  sel.innerHTML = '<option value="">— 곡 선택 —</option>' +
+    data.songs.map(s => `<option value="${s.id}">${esc(s.title)} (${esc(s.key) || '?'})</option>`).join('');
+}
+
+['set-title', 'set-date', 'set-leader'].forEach(id => {
+  const key = id.replace('set-', '');
+  const map = { title: 'title', date: 'date', leader: 'leader' };
+  document.getElementById(id).addEventListener('input', e => {
+    data.setMeta[map[key]] = e.target.value;
+    save();
+  });
+});
+
+function addSongToSet() {
+  const sid = document.getElementById('set-song-pick').value;
+  if (!sid) { toast('곡을 선택해주세요'); return; }
+  const song = data.songs.find(s => s.id === sid);
+  const customKey = document.getElementById('set-song-key').value.trim();
+  data.setlist.push({ sid, key: customKey || song.key, note: '' });
+  document.getElementById('set-song-key').value = '';
+  save();
+  renderSetlist();
+  toast('콘티에 곡을 추가했어요');
+}
+function moveSet(idx, dir) {
+  const ni = idx + dir;
+  if (ni < 0 || ni >= data.setlist.length) return;
+  [data.setlist[idx], data.setlist[ni]] = [data.setlist[ni], data.setlist[idx]];
+  save();
+  renderSetlist();
+}
+function removeFromSet(idx) {
+  data.setlist.splice(idx, 1);
+  save();
+  renderSetlist();
+}
+function clearSet() {
+  if (!confirm('현재 콘티의 곡을 모두 비울까요? (라이브러리 곡은 그대로예요)')) return;
+  data.setlist = [];
+  save();
+  renderSetlist();
+}
+
+function renderSetlist() {
+  const wrap = document.getElementById('setlist-rows');
+  document.getElementById('set-title').value = data.setMeta.title || '';
+  document.getElementById('set-date').value = data.setMeta.date || '';
+  document.getElementById('set-leader').value = data.setMeta.leader || '';
+  if (data.setlist.length === 0) {
+    wrap.innerHTML = '<div class="empty"><div class="big">♬</div>아직 콘티에 곡이 없어요.<br>위에서 곡을 골라 추가해보세요.</div>';
+    return;
+  }
+  wrap.innerHTML = data.setlist.map((row, i) => {
+    const s = data.songs.find(x => x.id === row.sid);
+    if (!s) return '';
+    return `
+      <div class="set-row">
+        <div class="order">${i + 1}</div>
+        <div class="sr-body">
+          <div class="sr-title">${esc(s.title)}
+            <span class="pill key" style="margin-left:6px;">Key ${esc(row.key) || '?'}</span>
+            <span class="pill bpm">${esc(s.bpm) || '?'} BPM</span>
+          </div>
+          <div class="sr-sub">${esc(s.artist) || '—'} · ${esc(s.mood)}</div>
+          <input type="text" class="sr-note-input"
+            data-idx="${i}" value="${esc(row.note)}"
+            placeholder="전환 멘트 / 인도 노트를 적어보세요..."
+            style="width:100%;margin-top:6px;font-family:'Gowun Dodum',sans-serif;
+            font-size:0.84rem;border:none;border-bottom:1px dashed var(--line);
+            background:transparent;color:var(--plum);padding:3px 2px;">
+        </div>
+        <div class="sr-move">
+          <button onclick="moveSet(${i},-1)" title="위로">▲</button>
+          <button onclick="moveSet(${i},1)" title="아래로">▼</button>
+          <button onclick="removeFromSet(${i})" title="빼기" style="color:var(--rose);">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+  wrap.querySelectorAll('.sr-note-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      data.setlist[parseInt(inp.dataset.idx)].note = inp.value;
+      save();
+    });
+  });
+}
+
+function exportConti() {
+  if (data.setlist.length === 0) { toast('콘티에 곡이 없어요'); return; }
+  const m = data.setMeta;
+  let html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc(m.title || '찬양 콘티')}</title>
+<style>
+body{font-family:sans-serif;max-width:600px;margin:0 auto;padding:30px 22px;
+background:#f0ece4;color:#2a2722;line-height:1.7;}
+h1{font-size:1.6rem;text-align:center;margin-bottom:4px;}
+.meta{text-align:center;color:#6d6557;font-size:0.9rem;margin-bottom:24px;}
+.song{background:#fbf9f4;border:1px solid #d6cdba;border-radius:11px;
+padding:13px 15px;margin-bottom:10px;}
+.song .ord{display:inline-block;background:#6d4d6e;color:#fff;width:24px;height:24px;
+border-radius:50%;text-align:center;line-height:24px;font-size:0.85rem;margin-right:8px;}
+.song .tt{font-weight:700;font-size:1.08rem;}
+.song .info{color:#6d6557;font-size:0.84rem;margin:3px 0 0 32px;}
+.song .nt{color:#6d4d6e;font-style:italic;font-size:0.86rem;margin:5px 0 0 32px;}
+.foot{text-align:center;color:#9a9081;font-size:0.8rem;margin-top:24px;}
+</style></head><body>
+<h1>${esc(m.title || '찬양 콘티')}</h1>
+<div class="meta">${esc(m.date || '')} ${m.leader ? '· 인도 ' + esc(m.leader) : ''}</div>`;
+  data.setlist.forEach((row, i) => {
+    const s = data.songs.find(x => x.id === row.sid);
+    if (!s) return;
+    html += `<div class="song">
+<div><span class="ord">${i + 1}</span><span class="tt">${esc(s.title)}</span></div>
+<div class="info">${esc(s.artist) || '—'} · Key ${esc(row.key) || '?'} · ${esc(s.bpm) || '?'} BPM · ${esc(s.mood)}</div>
+${row.note ? `<div class="nt">♪ ${esc(row.note)}</div>` : ''}
+</div>`;
+  });
+  html += `<div class="foot">찬양팀 연습 도우미로 만든 콘티</div></body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `찬양콘티_${(m.title || '콘티').replace(/\s/g, '')}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('콘티를 내보냈어요 — 팀에 공유하세요');
+}
+
+// ============================================
+// 파트 준비 체크
+// ============================================
+function renderParts() {
+  const wrap = document.getElementById('part-board-wrap');
+  if (data.setlist.length === 0) {
+    wrap.innerHTML = '<div class="empty"><div class="big">✓</div>' +
+      '현재 콘티에 곡이 없어요.<br>세트리스트 탭에서 곡을 먼저 담아주세요.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="part-board">' + PARTS.map(part => {
+    const items = data.setlist.map(row => {
+      const s = data.songs.find(x => x.id === row.sid);
+      if (!s) return '';
+      const key = row.sid + '_' + part.id;
+      const on = !!data.partChecks[key];
+      return `
+        <div class="check-item ${on ? 'done' : ''}">
+          <div class="check-box ${on ? 'on' : ''}" onclick="togglePart('${key}')">${on ? '✓' : ''}</div>
+          <div class="check-label">${esc(s.title)}</div>
+        </div>`;
+    }).join('');
+    const total = data.setlist.length;
+    const done = data.setlist.filter(row => data.partChecks[row.sid + '_' + part.id]).length;
+    return `
+      <div class="part-col">
+        <h3><span class="part-dot" style="background:${part.color}"></span>${part.name}</h3>
+        <div class="part-progress">준비 완료 ${done} / ${total}곡</div>
+        ${items}
+      </div>`;
+  }).join('') + '</div>';
+}
+function togglePart(key) {
+  data.partChecks[key] = !data.partChecks[key];
+  save();
+  renderParts();
+}
+
+// ============================================
+// 연습 일정
+// ============================================
+function openSchedModal() {
+  document.getElementById('m-sched-date').value = '';
+  document.getElementById('m-sched-time').value = '';
+  document.getElementById('m-sched-place').value = '';
+  document.getElementById('m-sched-memo').value = '';
+  document.getElementById('sched-modal').classList.add('show');
+}
+function closeSchedModal() {
+  document.getElementById('sched-modal').classList.remove('show');
+}
+function saveSched() {
+  const date = document.getElementById('m-sched-date').value;
+  if (!date) { toast('날짜를 선택해주세요'); return; }
+  data.schedules.push({
+    id: uid('sch'),
+    date,
+    time: document.getElementById('m-sched-time').value.trim(),
+    place: document.getElementById('m-sched-place').value.trim(),
+    memo: document.getElementById('m-sched-memo').value.trim()
+  });
+  save();
+  closeSchedModal();
+  renderSchedule();
+  toast('연습 일정을 추가했어요');
+}
+function deleteSched(id) {
+  if (!confirm('이 일정을 삭제할까요?')) return;
+  data.schedules = data.schedules.filter(s => s.id !== id);
+  save();
+  renderSchedule();
+}
+function renderSchedule() {
+  const list = document.getElementById('sched-list');
+  if (data.schedules.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="big">📅</div>등록된 연습 일정이 없어요.</div>';
+    return;
+  }
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const sorted = [...data.schedules].sort((a, b) => a.date.localeCompare(b.date));
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  list.innerHTML = sorted.map(s => {
+    const d = new Date(s.date + 'T00:00:00');
+    const past = d < today;
+    return `
+      <div class="sched-card ${past ? 'past' : ''}">
+        <div class="sched-date">
+          <div class="sd-day">${d.getDate()}</div>
+          <div class="sd-mon">${months[d.getMonth()]}</div>
+        </div>
+        <div class="sched-body">
+          <div class="sb-title">${esc(s.time) || '시간 미정'} · ${esc(s.place) || '장소 미정'}</div>
+          <div class="sb-meta">${esc(s.memo) || '메모 없음'}</div>
+        </div>
+        <button class="btn danger sm" onclick="deleteSched('${s.id}')">삭제</button>
+      </div>`;
+  }).join('');
+}
+
+// ============================================
+// 초기화
+// ============================================
+renderLibrary();
+refreshSongPicker();
+renderSetlist();
+renderSchedule();
+</script>
+</body>
+</html>
